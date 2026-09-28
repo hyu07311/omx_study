@@ -1,0 +1,190 @@
+<?xml version="1.0"?>
+<!--
+  SCARA 팔 (RRPR) + 평행 그리퍼
+    joint1 (shoulder) : revolute, z축
+    joint2 (elbow)    : revolute, z축
+    joint3 (quill)    : prismatic, -z축 (양수 = 아래로)
+    joint4 (wrist)    : revolute, z축
+    gripper_left/right_joint : prismatic (right는 left를 mimic, 양수 = 벌어짐)
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- 끝이 둥근 팔처럼 보이도록 관절 중심 앞뒤로 폭의 절반씩 여유를 둔 box -->
+  <xacro:macro name="scara_link" params="name length width height mass color">
+    <link name="${name}">
+      <visual>
+        <origin xyz="${length/2} 0 ${height/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${length + width} ${width} ${height}"/>
+        </geometry>
+        <material name="${color}"/>
+      </visual>
+      <collision>
+        <origin xyz="${length/2} 0 ${height/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${length + width} ${width} ${height}"/>
+        </geometry>
+      </collision>
+      <xacro:box_inertia m="${mass}" x="${length + width}" y="${width}" z="${height}">
+        <origin xyz="${length/2} 0 ${height/2}" rpy="0 0 0"/>
+      </xacro:box_inertia>
+    </link>
+  </xacro:macro>
+
+  <xacro:macro name="finger" params="side y_sign">
+    <joint name="gripper_${side}_joint" type="prismatic">
+      <parent link="gripper_base_link"/>
+      <child link="gripper_${side}_link"/>
+      <origin xyz="0 ${y_sign * (finger_y/2 + 0.002)} ${-gripper_base_z}" rpy="0 0 0"/>
+      <axis xyz="0 ${y_sign} 0"/>
+      <limit lower="0.0" upper="${finger_stroke}" effort="10" velocity="0.5"/>
+      <dynamics damping="0.1"/>
+      <xacro:if value="${side == 'right'}">
+        <mimic joint="gripper_left_joint" multiplier="1"/>
+      </xacro:if>
+    </joint>
+
+    <link name="gripper_${side}_link">
+      <visual>
+        <origin xyz="0 0 ${-finger_z/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${finger_x} ${finger_y} ${finger_z}"/>
+        </geometry>
+        <material name="blue"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${-finger_z/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${finger_x} ${finger_y} ${finger_z}"/>
+        </geometry>
+      </collision>
+      <xacro:box_inertia m="${finger_mass}" x="${finger_x}" y="${finger_y}" z="${finger_z}">
+        <origin xyz="0 0 ${-finger_z/2}" rpy="0 0 0"/>
+      </xacro:box_inertia>
+    </link>
+  </xacro:macro>
+
+  <xacro:macro name="scara_arm" params="parent">
+    <!-- 베이스 윗면에 고정된 기둥 -->
+    <joint name="column_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="column_link"/>
+      <origin xyz="${arm_mount_x} 0 ${base_height}" rpy="0 0 0"/>
+    </joint>
+
+    <link name="column_link">
+      <visual>
+        <origin xyz="0 0 ${column_height/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${column_radius}" length="${column_height}"/>
+        </geometry>
+        <material name="silver"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${column_height/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${column_radius}" length="${column_height}"/>
+        </geometry>
+      </collision>
+      <xacro:cylinder_inertia m="${column_mass}" r="${column_radius}" h="${column_height}">
+        <origin xyz="0 0 ${column_height/2}" rpy="0 0 0"/>
+      </xacro:cylinder_inertia>
+    </link>
+
+    <!-- 1축 - 어깨 -->
+    <joint name="joint1" type="revolute">
+      <parent link="column_link"/>
+      <child link="link1"/>
+      <origin xyz="0 0 ${column_height}" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-2.5" upper="2.5" effort="10" velocity="2.0"/>
+      <dynamics damping="0.1"/>
+    </joint>
+
+    <xacro:scara_link name="link1" length="${link1_length}" width="${link1_width}"
+                      height="${link1_height}" mass="${link1_mass}" color="orange"/>
+
+    <!-- 2축 - 팔꿈치 (link1 위에 한 층 올려서 겹치지 않게) -->
+    <joint name="joint2" type="revolute">
+      <parent link="link1"/>
+      <child link="link2"/>
+      <origin xyz="${link1_length} 0 ${link1_height}" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-2.5" upper="2.5" effort="10" velocity="2.0"/>
+      <dynamics damping="0.1"/>
+    </joint>
+
+    <xacro:scara_link name="link2" length="${link2_length}" width="${link2_width}"
+                      height="${link2_height}" mass="${link2_mass}" color="orange"/>
+
+    <!-- 3축 - quill 상하 이동 (axis -z → 양수 명령이면 내려감) -->
+    <joint name="joint3" type="prismatic">
+      <parent link="link2"/>
+      <child link="quill_link"/>
+      <origin xyz="${link2_length} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 0 -1"/>
+      <limit lower="0.0" upper="${quill_stroke}" effort="50" velocity="0.2"/>
+      <dynamics damping="0.1"/>
+    </joint>
+
+    <link name="quill_link">
+      <visual>
+        <origin xyz="0 0 ${quill_length/2 - quill_bottom}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${quill_radius}" length="${quill_length}"/>
+        </geometry>
+        <material name="silver"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${quill_length/2 - quill_bottom}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${quill_radius}" length="${quill_length}"/>
+        </geometry>
+      </collision>
+      <xacro:cylinder_inertia m="${quill_mass}" r="${quill_radius}" h="${quill_length}">
+        <origin xyz="0 0 ${quill_length/2 - quill_bottom}" rpy="0 0 0"/>
+      </xacro:cylinder_inertia>
+    </link>
+
+    <!-- 4축 - 손목 회전 -->
+    <joint name="joint4" type="revolute">
+      <parent link="quill_link"/>
+      <child link="gripper_base_link"/>
+      <origin xyz="0 0 ${-quill_bottom}" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="${-pi}" upper="${pi}" effort="5" velocity="3.0"/>
+      <dynamics damping="0.1"/>
+    </joint>
+
+    <link name="gripper_base_link">
+      <visual>
+        <origin xyz="0 0 ${-gripper_base_z/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${gripper_base_x} ${gripper_base_y} ${gripper_base_z}"/>
+        </geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${-gripper_base_z/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${gripper_base_x} ${gripper_base_y} ${gripper_base_z}"/>
+        </geometry>
+      </collision>
+      <xacro:box_inertia m="${gripper_base_mass}" x="${gripper_base_x}" y="${gripper_base_y}" z="${gripper_base_z}">
+        <origin xyz="0 0 ${-gripper_base_z/2}" rpy="0 0 0"/>
+      </xacro:box_inertia>
+    </link>
+
+    <xacro:finger side="left"  y_sign="1"/>
+    <xacro:finger side="right" y_sign="-1"/>
+
+    <!-- 손가락 끝 사이의 가상 프레임 (TF / 역기구학 기준점) -->
+    <joint name="end_effector_joint" type="fixed">
+      <parent link="gripper_base_link"/>
+      <child link="end_effector_link"/>
+      <origin xyz="0 0 ${-(gripper_base_z + finger_z)}" rpy="0 0 0"/>
+    </joint>
+    <link name="end_effector_link"/>
+  </xacro:macro>
+
+</robot>

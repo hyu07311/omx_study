@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!-- 모바일 매니퓰레이터 (6축 버전) 최상위 파일 - 차동구동 베이스 + UR식 6축 팔 -->
+<!--
+  주의) 주석 안에 "콜론+공백"을 쓰지 말 것.
+  gazebo_ros2_control(Humble)이 URDF를 ROS 파라미터(YAML)로 넘기면서 파싱 에러가 남.
+  SCARA 버전 파일은 수정하지 않고 include 해서 매크로 정의만 가져다 씀.
+-->
+<robot name="mobile_manipulator_ur6" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="use_sim" default="false"/>
+  <!-- Gazebo 실행 시 bringup launch에서 컨트롤러 yaml 경로를 넘겨줌 -->
+  <xacro:arg name="controllers_file" default=""/>
+
+  <!-- 기존 파일 (치수, 재질, 관성, 베이스, ros2_control/gazebo 공용 매크로) -->
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/common.xacro"/>
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/base.xacro"/>
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/ros2_control.xacro"/>
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/gazebo.xacro"/>
+
+  <!-- 6축 전용 파일 -->
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/ur6_arm.xacro"/>
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/ur6_ros2_control.xacro"/>
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/ur6_gazebo.xacro"/>
+
+  <xacro:mobile_base/>
+  <xacro:ur6_arm parent="base_link"/>
+
+  <xacro:ur6_ros2_control use_sim="$(arg use_sim)"/>
+  <xacro:ur6_gazebo controllers_file="$(arg controllers_file)"/>
+</robot>

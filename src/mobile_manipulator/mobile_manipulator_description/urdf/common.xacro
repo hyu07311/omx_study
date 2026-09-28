@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<!-- 공통 치수, 재질, 관성 매크로 -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ===================== 치수 (단위 - m, kg) ===================== -->
+  <!-- 베이스 -->
+  <xacro:property name="base_length" value="0.40"/>
+  <xacro:property name="base_width"  value="0.30"/>
+  <xacro:property name="base_height" value="0.10"/>
+  <xacro:property name="base_mass"   value="5.0"/>
+
+  <!-- 바퀴 (base_link 원점 = 바퀴 축 높이) -->
+  <xacro:property name="wheel_radius" value="0.05"/>
+  <xacro:property name="wheel_width"  value="0.03"/>
+  <xacro:property name="wheel_mass"   value="0.5"/>
+  <xacro:property name="wheel_x"      value="-0.10"/>
+  <xacro:property name="wheel_y"      value="0.17"/>
+
+  <!-- 캐스터 -->
+  <xacro:property name="caster_radius" value="0.025"/>
+  <xacro:property name="caster_mass"   value="0.1"/>
+  <xacro:property name="caster_x"      value="0.15"/>
+
+  <!-- SCARA 팔 -->
+  <xacro:property name="arm_mount_x"     value="0.05"/>
+  <xacro:property name="column_radius"   value="0.04"/>
+  <xacro:property name="column_height"   value="0.25"/>
+  <xacro:property name="column_mass"     value="0.5"/>
+
+  <xacro:property name="link1_length" value="0.20"/>
+  <xacro:property name="link1_width"  value="0.05"/>
+  <xacro:property name="link1_height" value="0.03"/>
+  <xacro:property name="link1_mass"   value="0.3"/>
+
+  <xacro:property name="link2_length" value="0.15"/>
+  <xacro:property name="link2_width"  value="0.04"/>
+  <xacro:property name="link2_height" value="0.03"/>
+  <xacro:property name="link2_mass"   value="0.2"/>
+
+  <xacro:property name="quill_radius" value="0.012"/>
+  <xacro:property name="quill_length" value="0.40"/>
+  <xacro:property name="quill_mass"   value="0.1"/>
+  <xacro:property name="quill_stroke" value="0.18"/>
+  <!-- quill 프레임(= link2 바닥) 아래로 튀어나온 길이, 나머지는 위로 솟음 -->
+  <xacro:property name="quill_bottom" value="0.15"/>
+
+  <!-- 그리퍼 -->
+  <xacro:property name="gripper_base_x"    value="0.04"/>
+  <xacro:property name="gripper_base_y"    value="0.08"/>
+  <xacro:property name="gripper_base_z"    value="0.02"/>
+  <xacro:property name="gripper_base_mass" value="0.05"/>
+  <xacro:property name="finger_x"    value="0.02"/>
+  <xacro:property name="finger_y"    value="0.01"/>
+  <xacro:property name="finger_z"    value="0.06"/>
+  <xacro:property name="finger_mass" value="0.02"/>
+  <xacro:property name="finger_stroke" value="0.03"/>
+
+  <!-- ===================== 재질 (RViz 색상) ===================== -->
+  <material name="dark_grey"><color rgba="0.25 0.25 0.25 1.0"/></material>
+  <material name="black"><color rgba="0.05 0.05 0.05 1.0"/></material>
+  <material name="orange"><color rgba="1.0 0.5 0.0 1.0"/></material>
+  <material name="silver"><color rgba="0.75 0.75 0.75 1.0"/></material>
+  <material name="blue"><color rgba="0.1 0.3 0.8 1.0"/></material>
+
+  <!-- ===================== 관성 매크로 ===================== -->
+  <!-- 균일 밀도 직육면체 - I = m/12 (b^2 + c^2) -->
+  <xacro:macro name="box_inertia" params="m x y z *origin">
+    <inertial>
+      <xacro:insert_block name="origin"/>
+      <mass value="${m}"/>
+      <inertia ixx="${m * (y*y + z*z) / 12}" ixy="0" ixz="0"
+               iyy="${m * (x*x + z*z) / 12}" iyz="0"
+               izz="${m * (x*x + y*y) / 12}"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- 균일 밀도 원기둥 (축 = 로컬 z) - Ixx = Iyy = m/12 (3r^2 + h^2), Izz = m r^2 / 2 -->
+  <xacro:macro name="cylinder_inertia" params="m r h *origin">
+    <inertial>
+      <xacro:insert_block name="origin"/>
+      <mass value="${m}"/>
+      <inertia ixx="${m * (3*r*r + h*h) / 12}" ixy="0" ixz="0"
+               iyy="${m * (3*r*r + h*h) / 12}" iyz="0"
+               izz="${m * r*r / 2}"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- 균일 밀도 구 - I = 2/5 m r^2 -->
+  <xacro:macro name="sphere_inertia" params="m r *origin">
+    <inertial>
+      <xacro:insert_block name="origin"/>
+      <mass value="${m}"/>
+      <inertia ixx="${2 * m * r*r / 5}" ixy="0" ixz="0"
+               iyy="${2 * m * r*r / 5}" iyz="0"
+               izz="${2 * m * r*r / 5}"/>
+    </inertial>
+  </xacro:macro>
+
+</robot>

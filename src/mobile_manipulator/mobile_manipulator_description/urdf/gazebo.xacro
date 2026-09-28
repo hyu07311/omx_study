@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!-- Gazebo 전용 설정 - 마찰, 접촉 강성, 색상 -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="gazebo_link" params="reference material mu:=0.8">
+    <gazebo reference="${reference}">
+      <mu1>${mu}</mu1>
+      <mu2>${mu}</mu2>
+      <kp>1000000.0</kp>
+      <kd>100.0</kd>
+      <minDepth>0.001</minDepth>
+      <maxVel>1.0</maxVel>
+      <material>${material}</material>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:macro name="mobile_manipulator_gazebo" params="controllers_file">
+    <xacro:gazebo_link reference="base_link"         material="Gazebo/DarkGrey"/>
+    <!-- 바퀴는 미끄러지지 않게 마찰 크게, 캐스터는 마찰 0으로 자유롭게 미끄러지게 -->
+    <xacro:gazebo_link reference="left_wheel_link"   material="Gazebo/Black" mu="1.5"/>
+    <xacro:gazebo_link reference="right_wheel_link"  material="Gazebo/Black" mu="1.5"/>
+    <xacro:gazebo_link reference="caster_link"       material="Gazebo/Grey"  mu="0.0"/>
+    <xacro:gazebo_link reference="column_link"       material="Gazebo/Grey"/>
+    <xacro:gazebo_link reference="link1"             material="Gazebo/Orange"/>
+    <xacro:gazebo_link reference="link2"             material="Gazebo/Orange"/>
+    <xacro:gazebo_link reference="quill_link"        material="Gazebo/Grey"/>
+    <xacro:gazebo_link reference="gripper_base_link" material="Gazebo/DarkGrey"/>
+    <xacro:gazebo_link reference="gripper_left_link"  material="Gazebo/Blue" mu="30.0"/>
+    <xacro:gazebo_link reference="gripper_right_link" material="Gazebo/Blue" mu="30.0"/>
+
+    <gazebo>
+      <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+        <parameters>${controllers_file}</parameters>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+</robot>

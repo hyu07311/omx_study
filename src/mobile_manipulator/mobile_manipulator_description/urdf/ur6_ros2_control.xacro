@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+  6축 버전 ros2_control 정의 (position_joint / velocity_joint 매크로는 ros2_control.xacro 의 정의를 사용)
+    use_sim=true  - Gazebo (gazebo_ros2_control/GazeboSystem)
+    use_sim=false - mock_components/GenericSystem
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="ur6_ros2_control" params="use_sim">
+    <ros2_control name="MobileManipulatorUR6System" type="system">
+      <hardware>
+        <xacro:if value="${use_sim}">
+          <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </xacro:if>
+        <xacro:unless value="${use_sim}">
+          <plugin>mock_components/GenericSystem</plugin>
+        </xacro:unless>
+      </hardware>
+
+      <!-- 바퀴 - 속도 명령 (diff_drive_controller) -->
+      <xacro:velocity_joint name="left_wheel_joint"/>
+      <xacro:velocity_joint name="right_wheel_joint"/>
+
+      <!-- 6축 팔 - 위치 명령 (joint_trajectory_controller) -->
+      <xacro:position_joint name="joint1"/>
+      <xacro:position_joint name="joint2"/>
+      <xacro:position_joint name="joint3"/>
+      <xacro:position_joint name="joint4"/>
+      <xacro:position_joint name="joint5"/>
+      <xacro:position_joint name="joint6"/>
+
+      <!-- 그리퍼 - right 는 left 를 따라감 -->
+      <xacro:position_joint name="gripper_left_joint"/>
+      <joint name="gripper_right_joint">
+        <param name="mimic">gripper_left_joint</param>
+        <param name="multiplier">1</param>
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+  </xacro:macro>
+
+</robot>

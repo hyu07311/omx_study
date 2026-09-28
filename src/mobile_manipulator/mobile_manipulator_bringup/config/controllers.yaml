@@ -1,0 +1,80 @@
+controller_manager:
+  ros__parameters:
+    use_sim_time: True
+    update_rate: 100  # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
+
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    gripper_controller:
+      type: position_controllers/GripperActionController
+
+diff_drive_controller:
+  ros__parameters:
+    use_sim_time: True
+    left_wheel_names: ["left_wheel_joint"]
+    right_wheel_names: ["right_wheel_joint"]
+
+    # common.xacro 의 wheel_y * 2, wheel_radius 와 일치해야 함
+    wheel_separation: 0.34
+    wheel_radius: 0.05
+
+    base_frame_id: base_footprint
+    odom_frame_id: odom
+    enable_odom_tf: true
+    open_loop: false
+    publish_rate: 50.0
+    pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+    twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+
+    # geometry_msgs/Twist 를 ~/cmd_vel_unstamped 로 받음
+    use_stamped_vel: false
+    cmd_vel_timeout: 0.5
+
+    linear.x.has_velocity_limits: true
+    linear.x.max_velocity: 0.5
+    linear.x.min_velocity: -0.5
+    angular.z.has_velocity_limits: true
+    angular.z.max_velocity: 1.5
+    angular.z.min_velocity: -1.5
+
+arm_controller:
+  ros__parameters:
+    use_sim_time: True
+    joints:
+      - joint1
+      - joint2
+      - joint3
+      - joint4
+
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+      - velocity
+
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+
+    allow_partial_joints_goal: false
+    open_loop_control: true
+    allow_integration_in_goal_trajectories: true
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+
+gripper_controller:
+  ros__parameters:
+    use_sim_time: True
+    joint: gripper_left_joint
+    action_monitor_rate: 20.0
+    goal_tolerance: 0.002
+    max_effort: 10.0
+    allow_stalling: true
