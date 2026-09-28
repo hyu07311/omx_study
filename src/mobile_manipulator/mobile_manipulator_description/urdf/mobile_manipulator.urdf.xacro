@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!-- 모바일 매니퓰레이터 최상위 파일 - 차동구동 베이스 + SCARA 팔 -->
+<!--
+  주의) 주석 안에 "콜론+공백"을 쓰지 말 것.
+  gazebo_ros2_control(Humble)이 URDF를 ROS 파라미터(YAML)로 넘기면서 파싱 에러가 남.
+-->
+
+<robot name="mobile_manipulator" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="use_sim" default="false"/>
+  <!-- Gazebo 실행 시 bringup launch에서 컨트롤러 yaml 경로를 넘겨줌 -->
+  <xacro:arg name="controllers_file" default=""/>
+
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/common.xacro"/>
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/base.xacro"/>
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/scara_arm.xacro"/>
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/gazebo.xacro"/>
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/ros2_control.xacro"/>
+
+  <xacro:mobile_base/>
+  <xacro:scara_arm parent="base_link"/>
+
+  <xacro:mobile_manipulator_ros2_control use_sim="$(arg use_sim)"/>
+  <xacro:mobile_manipulator_gazebo controllers_file="$(arg controllers_file)"/>
+</robot>

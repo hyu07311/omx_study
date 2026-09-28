@@ -1,0 +1,243 @@
+<?xml version="1.0"?>
+<!--
+  UR식 6축 팔 + 평행 그리퍼 (0 자세 = 팔이 위로 곧게 선 자세)
+    joint1 shoulder_pan  - z축
+    joint2 shoulder_lift - y축
+    joint3 elbow         - y축
+    joint4 wrist1        - y축
+    joint5 wrist2        - z축
+    joint6 wrist3        - y축 (= tool0 의 z축)
+  어깨/팔꿈치/손목 사이에 UR처럼 옆(y) 방향 오프셋이 있음
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ===================== 6축 팔 치수 (단위 m, kg) ===================== -->
+  <xacro:property name="ur_mount_x"        value="0.05"/>
+  <xacro:property name="ur_pedestal_r"     value="0.05"/>
+  <xacro:property name="ur_pedestal_h"     value="0.10"/>
+  <xacro:property name="ur_pedestal_mass"  value="0.5"/>
+
+  <xacro:property name="ur_shoulder_offset" value="0.07"/>
+  <xacro:property name="ur_shoulder_r"      value="0.04"/>
+  <xacro:property name="ur_shoulder_mass"   value="0.4"/>
+
+  <xacro:property name="ur_upper_len"   value="0.22"/>
+  <xacro:property name="ur_upper_r"     value="0.03"/>
+  <xacro:property name="ur_upper_mass"  value="0.4"/>
+  <xacro:property name="ur_elbow_offset" value="0.06"/>
+
+  <xacro:property name="ur_fore_len"   value="0.20"/>
+  <xacro:property name="ur_fore_r"     value="0.025"/>
+  <xacro:property name="ur_fore_mass"  value="0.3"/>
+
+  <xacro:property name="ur_wrist_r"         value="0.025"/>
+  <xacro:property name="ur_wrist1_offset"   value="0.05"/>
+  <xacro:property name="ur_wrist2_len"      value="0.05"/>
+  <xacro:property name="ur_wrist3_len"      value="0.03"/>
+  <xacro:property name="ur_wrist_mass"      value="0.1"/>
+
+  <!-- 원기둥 링크 한 개 (visual + collision + inertial). rpy 로 축 방향 지정 -->
+  <xacro:macro name="ur_cylinder_link" params="name r h mass color *origin">
+    <link name="${name}">
+      <visual>
+        <xacro:insert_block name="origin"/>
+        <geometry>
+          <cylinder radius="${r}" length="${h}"/>
+        </geometry>
+        <material name="${color}"/>
+      </visual>
+      <collision>
+        <xacro:insert_block name="origin"/>
+        <geometry>
+          <cylinder radius="${r}" length="${h}"/>
+        </geometry>
+      </collision>
+      <xacro:cylinder_inertia m="${mass}" r="${r}" h="${h}">
+        <xacro:insert_block name="origin"/>
+      </xacro:cylinder_inertia>
+    </link>
+  </xacro:macro>
+
+  <xacro:macro name="ur_revolute" params="name parent child axis lower upper xyz">
+    <joint name="${name}" type="revolute">
+      <parent link="${parent}"/>
+      <child link="${child}"/>
+      <origin xyz="${xyz}" rpy="0 0 0"/>
+      <axis xyz="${axis}"/>
+      <limit lower="${lower}" upper="${upper}" effort="20" velocity="2.0"/>
+      <dynamics damping="0.1"/>
+    </joint>
+  </xacro:macro>
+
+  <!-- ===================== 그리퍼 (SCARA 와 같은 링크/관절 이름) ===================== -->
+  <xacro:macro name="ur_finger" params="side y_sign">
+    <joint name="gripper_${side}_joint" type="prismatic">
+      <parent link="gripper_base_link"/>
+      <child link="gripper_${side}_link"/>
+      <origin xyz="0 ${y_sign * (finger_y/2 + 0.002)} ${-gripper_base_z}" rpy="0 0 0"/>
+      <axis xyz="0 ${y_sign} 0"/>
+      <limit lower="0.0" upper="${finger_stroke}" effort="10" velocity="0.5"/>
+      <dynamics damping="0.1"/>
+      <xacro:if value="${side == 'right'}">
+        <mimic joint="gripper_left_joint" multiplier="1"/>
+      </xacro:if>
+    </joint>
+
+    <link name="gripper_${side}_link">
+      <visual>
+        <origin xyz="0 0 ${-finger_z/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${finger_x} ${finger_y} ${finger_z}"/>
+        </geometry>
+        <material name="blue"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${-finger_z/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${finger_x} ${finger_y} ${finger_z}"/>
+        </geometry>
+      </collision>
+      <xacro:box_inertia m="${finger_mass}" x="${finger_x}" y="${finger_y}" z="${finger_z}">
+        <origin xyz="0 0 ${-finger_z/2}" rpy="0 0 0"/>
+      </xacro:box_inertia>
+    </link>
+  </xacro:macro>
+
+  <!-- 그리퍼 좌표계의 -z 방향으로 손가락이 뻗음 -->
+  <xacro:macro name="ur_gripper" params="parent *origin">
+    <joint name="gripper_mount_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="gripper_base_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <link name="gripper_base_link">
+      <visual>
+        <origin xyz="0 0 ${-gripper_base_z/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${gripper_base_x} ${gripper_base_y} ${gripper_base_z}"/>
+        </geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${-gripper_base_z/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${gripper_base_x} ${gripper_base_y} ${gripper_base_z}"/>
+        </geometry>
+      </collision>
+      <xacro:box_inertia m="${gripper_base_mass}" x="${gripper_base_x}" y="${gripper_base_y}" z="${gripper_base_z}">
+        <origin xyz="0 0 ${-gripper_base_z/2}" rpy="0 0 0"/>
+      </xacro:box_inertia>
+    </link>
+
+    <xacro:ur_finger side="left"  y_sign="1"/>
+    <xacro:ur_finger side="right" y_sign="-1"/>
+
+    <!-- 손가락 끝 사이의 가상 프레임 (IK 기준점) -->
+    <joint name="end_effector_joint" type="fixed">
+      <parent link="gripper_base_link"/>
+      <child link="end_effector_link"/>
+      <origin xyz="0 0 ${-(gripper_base_z + finger_z)}" rpy="0 0 0"/>
+    </joint>
+    <link name="end_effector_link"/>
+  </xacro:macro>
+
+  <!-- ===================== 6축 팔 ===================== -->
+  <xacro:macro name="ur6_arm" params="parent">
+    <!-- 베이스 윗면의 받침대 -->
+    <joint name="arm_mount_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="arm_base_link"/>
+      <origin xyz="${ur_mount_x} 0 ${base_height}" rpy="0 0 0"/>
+    </joint>
+    <xacro:ur_cylinder_link name="arm_base_link" r="${ur_pedestal_r}" h="${ur_pedestal_h}"
+                            mass="${ur_pedestal_mass}" color="silver">
+      <origin xyz="0 0 ${ur_pedestal_h/2}" rpy="0 0 0"/>
+    </xacro:ur_cylinder_link>
+
+    <!-- 1축 (어깨 회전) -->
+    <xacro:ur_revolute name="joint1" parent="arm_base_link" child="shoulder_link"
+                       axis="0 0 1" lower="${-pi}" upper="${pi}" xyz="0 0 ${ur_pedestal_h}"/>
+    <!-- y 방향 하우징 (2축 모터) -->
+    <xacro:ur_cylinder_link name="shoulder_link" r="${ur_shoulder_r}" h="${ur_shoulder_offset + 2*ur_shoulder_r}"
+                            mass="${ur_shoulder_mass}" color="blue">
+      <origin xyz="0 ${ur_shoulder_offset/2} 0" rpy="${pi/2} 0 0"/>
+    </xacro:ur_cylinder_link>
+
+    <!-- 2축 (어깨 들기) -->
+    <xacro:ur_revolute name="joint2" parent="shoulder_link" child="upper_arm_link"
+                       axis="0 1 0" lower="-2.0" upper="2.0" xyz="0 ${ur_shoulder_offset} 0"/>
+    <xacro:ur_cylinder_link name="upper_arm_link" r="${ur_upper_r}" h="${ur_upper_len}"
+                            mass="${ur_upper_mass}" color="silver">
+      <origin xyz="0 0 ${ur_upper_len/2}" rpy="0 0 0"/>
+    </xacro:ur_cylinder_link>
+
+    <!-- 3축 (팔꿈치) -->
+    <xacro:ur_revolute name="joint3" parent="upper_arm_link" child="forearm_link"
+                       axis="0 1 0" lower="-2.6" upper="2.6" xyz="0 ${-ur_elbow_offset} ${ur_upper_len}"/>
+    <link name="forearm_link">
+      <visual>
+        <origin xyz="0 0 ${ur_fore_len/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${ur_fore_r}" length="${ur_fore_len}"/>
+        </geometry>
+        <material name="silver"/>
+      </visual>
+      <!-- 팔꿈치 하우징 (위팔과 이어지는 y 방향 원기둥, 보기용) -->
+      <visual>
+        <origin xyz="0 ${ur_elbow_offset/2} 0" rpy="${pi/2} 0 0"/>
+        <geometry>
+          <cylinder radius="${ur_upper_r}" length="${ur_elbow_offset + 2*ur_upper_r}"/>
+        </geometry>
+        <material name="blue"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${ur_fore_len/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${ur_fore_r}" length="${ur_fore_len}"/>
+        </geometry>
+      </collision>
+      <xacro:cylinder_inertia m="${ur_fore_mass}" r="${ur_fore_r}" h="${ur_fore_len}">
+        <origin xyz="0 0 ${ur_fore_len/2}" rpy="0 0 0"/>
+      </xacro:cylinder_inertia>
+    </link>
+
+    <!-- 4축 (손목1) -->
+    <xacro:ur_revolute name="joint4" parent="forearm_link" child="wrist1_link"
+                       axis="0 1 0" lower="${-pi}" upper="${pi}" xyz="0 0 ${ur_fore_len}"/>
+    <xacro:ur_cylinder_link name="wrist1_link" r="${ur_wrist_r}" h="${ur_wrist1_offset + 2*ur_wrist_r}"
+                            mass="${ur_wrist_mass}" color="blue">
+      <origin xyz="0 ${ur_wrist1_offset/2} 0" rpy="${pi/2} 0 0"/>
+    </xacro:ur_cylinder_link>
+
+    <!-- 5축 (손목2) -->
+    <xacro:ur_revolute name="joint5" parent="wrist1_link" child="wrist2_link"
+                       axis="0 0 1" lower="${-pi}" upper="${pi}" xyz="0 ${ur_wrist1_offset} 0"/>
+    <xacro:ur_cylinder_link name="wrist2_link" r="${ur_wrist_r}" h="${ur_wrist2_len + ur_wrist_r}"
+                            mass="${ur_wrist_mass}" color="blue">
+      <origin xyz="0 0 ${(ur_wrist2_len + ur_wrist_r)/2 - ur_wrist_r/2}" rpy="0 0 0"/>
+    </xacro:ur_cylinder_link>
+
+    <!-- 6축 (손목3, 플랜지) -->
+    <xacro:ur_revolute name="joint6" parent="wrist2_link" child="wrist3_link"
+                       axis="0 1 0" lower="${-pi}" upper="${pi}" xyz="0 0 ${ur_wrist2_len}"/>
+    <xacro:ur_cylinder_link name="wrist3_link" r="${ur_wrist_r}" h="${ur_wrist3_len}"
+                            mass="${ur_wrist_mass/2}" color="dark_grey">
+      <origin xyz="0 ${ur_wrist3_len/2} 0" rpy="${pi/2} 0 0"/>
+    </xacro:ur_cylinder_link>
+
+    <!-- 공구 플랜지 좌표계 - z축이 wrist3 의 +y 방향을 향하도록 회전 -->
+    <joint name="tool0_joint" type="fixed">
+      <parent link="wrist3_link"/>
+      <child link="tool0"/>
+      <origin xyz="0 ${ur_wrist3_len} 0" rpy="${-pi/2} 0 0"/>
+    </joint>
+    <link name="tool0"/>
+
+    <!-- 그리퍼를 뒤집어 붙여 손가락이 tool0 의 +z 방향으로 뻗게 함 -->
+    <xacro:ur_gripper parent="tool0">
+      <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+    </xacro:ur_gripper>
+  </xacro:macro>
+
+</robot>

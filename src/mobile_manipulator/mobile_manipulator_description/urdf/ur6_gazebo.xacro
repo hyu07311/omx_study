@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!-- 6축 버전 Gazebo 설정 (gazebo_link 매크로는 gazebo.xacro 의 정의를 사용) -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="ur6_gazebo" params="controllers_file">
+    <!-- 베이스 -->
+    <xacro:gazebo_link reference="base_link"        material="Gazebo/DarkGrey"/>
+    <xacro:gazebo_link reference="left_wheel_link"  material="Gazebo/Black" mu="1.5"/>
+    <xacro:gazebo_link reference="right_wheel_link" material="Gazebo/Black" mu="1.5"/>
+    <xacro:gazebo_link reference="caster_link"      material="Gazebo/Grey"  mu="0.0"/>
+
+    <!-- 6축 팔 -->
+    <xacro:gazebo_link reference="arm_base_link"  material="Gazebo/Grey"/>
+    <xacro:gazebo_link reference="shoulder_link"  material="Gazebo/Blue"/>
+    <xacro:gazebo_link reference="upper_arm_link" material="Gazebo/Grey"/>
+    <xacro:gazebo_link reference="forearm_link"   material="Gazebo/Grey"/>
+    <xacro:gazebo_link reference="wrist1_link"    material="Gazebo/Blue"/>
+    <xacro:gazebo_link reference="wrist2_link"    material="Gazebo/Blue"/>
+    <xacro:gazebo_link reference="wrist3_link"    material="Gazebo/DarkGrey"/>
+
+    <!-- 그리퍼 -->
+    <xacro:gazebo_link reference="gripper_base_link"  material="Gazebo/DarkGrey"/>
+    <xacro:gazebo_link reference="gripper_left_link"  material="Gazebo/Blue" mu="30.0"/>
+    <xacro:gazebo_link reference="gripper_right_link" material="Gazebo/Blue" mu="30.0"/>
+
+    <gazebo>
+      <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+        <parameters>${controllers_file}</parameters>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+</robot>
