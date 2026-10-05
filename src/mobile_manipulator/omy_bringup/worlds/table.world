@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!-- OMY 앞에 낮은 테이블과 색깔 큐브 (D405 포인트클라우드 / 집기 테스트용) -->
+<sdf version="1.6">
+  <world name="default">
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <physics type="ode">
+      <real_time_update_rate>1000.0</real_time_update_rate>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+    </physics>
+
+    <!-- 테이블 윗면 높이 0.10 m, 로봇 앞 0.25 ~ 0.65 m -->
+    <model name="table">
+      <static>true</static>
+      <pose>0.45 0 0.05 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>0.4 0.6 0.1</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.4 0.6 0.1</size></box></geometry>
+          <material>
+            <script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Wood</name></script>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="red_cube">
+      <pose>0.45 0.0 0.12 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.05</mass>
+          <inertia><ixx>1.33e-05</ixx><iyy>1.33e-05</iyy><izz>1.33e-05</izz></inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry><box><size>0.04 0.04 0.04</size></box></geometry>
+          <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.04 0.04 0.04</size></box></geometry>
+          <material>
+            <script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Red</name></script>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="blue_cube">
+      <pose>0.38 0.18 0.12 0 0 0.5</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.05</mass>
+          <inertia><ixx>1.33e-05</ixx><iyy>1.33e-05</iyy><izz>1.33e-05</izz></inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry><box><size>0.04 0.04 0.04</size></box></geometry>
+          <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.04 0.04 0.04</size></box></geometry>
+          <material>
+            <script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Blue</name></script>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

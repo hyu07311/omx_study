@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<!--
+  Intel RealSense D405 뎁스 카메라
+    본체 42 x 42 x 23 mm, 깊이 시야각 87° x 58°, 권장 측정 거리 0.07 ~ 0.5 m
+    D405 는 컬러와 깊이를 같은 센서에서 얻으므로 color / depth 프레임이 같은 위치
+
+  프레임 구조 (realsense2_description 과 같은 이름 규칙)
+    <name>_bottom_screw_frame    본체 아래 나사 구멍 (장착 기준)
+    <name>_link                  x 앞, y 왼쪽, z 위 (ROS 바디 좌표계, REP-103)
+    <name>_depth_optical_frame   z 앞, x 오른쪽, y 아래 (영상 좌표계, 포인트클라우드 기준)
+    <name>_color_optical_frame   위와 같은 위치
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:property name="d405_width"  value="0.042"/>
+  <xacro:property name="d405_height" value="0.042"/>
+  <xacro:property name="d405_depth"  value="0.023"/>
+  <xacro:property name="d405_mass"   value="0.072"/>
+  <!-- 나사 구멍 ~ 왼쪽 영상 센서 (camera_link 원점) -->
+  <xacro:property name="d405_screw_to_link" value="0.01085 0.009 0.021"/>
+  <!-- camera_link ~ 본체 중심 (본체는 렌즈면 뒤쪽, 센서가 본체 중앙에서 옆으로 치우쳐 있음) -->
+  <xacro:property name="d405_body_center" value="-0.0078 -0.009 0"/>
+
+  <xacro:property name="d405_hfov"      value="${radians(87)}"/>
+  <xacro:property name="d405_width_px"  value="848"/>
+  <xacro:property name="d405_height_px" value="480"/>
+  <xacro:property name="d405_min_depth" value="0.07"/>
+  <xacro:property name="d405_max_depth" value="0.5"/>
+
+  <material name="aluminum"><color rgba="0.6 0.6 0.65 1.0"/></material>
+
+  <xacro:macro name="optical_frame" params="name parent">
+    <joint name="${name}_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${name}"/>
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+    </joint>
+    <link name="${name}"/>
+  </xacro:macro>
+
+  <xacro:macro name="d405" params="name:=camera parent *origin">
+    <joint name="${name}_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${name}_bottom_screw_frame"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+    <link name="${name}_bottom_screw_frame"/>
+
+    <joint name="${name}_link_joint" type="fixed">
+      <parent link="${name}_bottom_screw_frame"/>
+      <child link="${name}_link"/>
+      <origin xyz="${d405_screw_to_link}" rpy="0 0 0"/>
+    </joint>
+    <link name="${name}_link">
+      <visual>
+        <origin xyz="${d405_body_center}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${d405_depth} ${d405_width} ${d405_height}"/>
+        </geometry>
+        <material name="aluminum"/>
+      </visual>
+      <collision>
+        <origin xyz="${d405_body_center}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${d405_depth} ${d405_width} ${d405_height}"/>
+        </geometry>
+      </collision>
+      <xacro:box_inertia m="${d405_mass}" x="${d405_depth}" y="${d405_width}" z="${d405_height}">
+        <origin xyz="${d405_body_center}" rpy="0 0 0"/>
+      </xacro:box_inertia>
+    </link>
+
+    <xacro:optical_frame name="${name}_depth_optical_frame" parent="${name}_link"/>
+    <xacro:optical_frame name="${name}_color_optical_frame" parent="${name}_link"/>
+  </xacro:macro>
+
+  <!--
+    Gazebo Classic 뎁스 카메라 (gazebo_plugins 의 libgazebo_ros_camera.so)
+    카메라는 <name>_link 의 +x 방향을 보고, 출력은 optical 프레임 기준
+    토픽 (namespace = d405)
+      /d405/color/image_raw         컬러 영상
+      /d405/color/depth/image_raw   깊이 영상 (32FC1, m)
+      /d405/color/points            포인트클라우드
+  -->
+  <xacro:macro name="d405_gazebo" params="name:=camera namespace:=d405 rate:=15">
+    <gazebo reference="${name}_link">
+      <material>Gazebo/Grey</material>
+      <sensor name="${name}_d405" type="depth">
+        <always_on>true</always_on>
+        <update_rate>${rate}</update_rate>
+        <visualize>false</visualize>
+        <camera name="${name}">
+          <horizontal_fov>${d405_hfov}</horizontal_fov>
+          <image>
+            <width>${d405_width_px}</width>
+            <height>${d405_height_px}</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>${d405_min_depth}</near>
+            <far>3.0</far>
+          </clip>
+        </camera>
+        <plugin name="${name}_d405_driver" filename="libgazebo_ros_camera.so">
+          <ros>
+            <namespace>${namespace}</namespace>
+          </ros>
+          <camera_name>color</camera_name>
+          <frame_name>${name}_depth_optical_frame</frame_name>
+          <hack_baseline>0.0</hack_baseline>
+          <min_depth>${d405_min_depth}</min_depth>
+          <max_depth>${d405_max_depth}</max_depth>
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+</robot>

@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!--
+  OpenMANIPULATOR-Y (OMY) 최상위 파일 - 바닥 고정 6축 팔
+    variant=f3m (기본) - 6축 팔 + RH-P12-RN-A 그리퍼 + RealSense D405
+    variant=3m         - 6축 팔만 (손끝 장치 없음)
+
+  주의) 주석 안에 "콜론+공백"을 쓰지 말 것.
+  gazebo_ros2_control(Humble)이 URDF를 ROS 파라미터(YAML)로 넘기면서 파싱 에러가 남.
+-->
+<robot name="omy" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="variant" default="f3m"/>
+  <xacro:arg name="use_sim" default="false"/>
+  <!-- Gazebo 실행 시 bringup launch에서 컨트롤러 yaml 경로를 넘겨줌 -->
+  <xacro:arg name="controllers_file" default=""/>
+  <xacro:property name="variant" value="$(arg variant)"/>
+
+  <!-- 기존 파일 (관성 공식, gazebo 공용 매크로) -->
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/common.xacro"/>
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/gazebo.xacro"/>
+
+  <!-- OMY 전용 파일 -->
+  <xacro:include filename="$(find omy_description)/urdf/omy_arm.xacro"/>
+  <xacro:include filename="$(find omy_description)/urdf/rh_p12_rn_a.xacro"/>
+  <xacro:include filename="$(find omy_description)/urdf/d405.xacro"/>
+  <xacro:include filename="$(find omy_description)/urdf/omy_ros2_control.xacro"/>
+  <xacro:include filename="$(find omy_description)/urdf/omy_gazebo.xacro"/>
+
+  <xacro:if value="${variant not in ('f3m', '3m')}">
+    <xacro:error message="variant 는 f3m 또는 3m"/>
+  </xacro:if>
+
+  <link name="world"/>
+  <joint name="world_fixed" type="fixed">
+    <parent link="world"/>
+    <child link="link0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <xacro:omy_arm variant="${variant}"/>
+
+  <xacro:if value="${variant == 'f3m'}">
+    <!-- 그리퍼 - 플랜지 -y 방향(손끝 방향)으로 손가락이 뻗도록 회전해서 장착 -->
+    <xacro:rh_p12_rn_a parent="end_effector_flange_link">
+      <origin xyz="0 -0.006 0" rpy="${pi/2} ${-pi/2} 0"/>
+    </xacro:rh_p12_rn_a>
+
+    <!-- D405 - link6 위쪽 브래킷에 장착, 렌즈는 손끝 방향(link6 -y)을 향함 -->
+    <xacro:d405 name="camera" parent="link6">
+      <origin xyz="-0.021 -0.07385 0.0803" rpy="${-pi/2} 0 ${-pi/2}"/>
+    </xacro:d405>
+
+    <!-- 손끝 기준점 (IK 목표) - 플랜지에서 손끝 방향으로 0.141 m, 자세는 플랜지와 같음 -->
+    <joint name="end_effector_joint" type="fixed">
+      <parent link="end_effector_flange_link"/>
+      <child link="end_effector_link"/>
+      <origin xyz="0 -0.141 0" rpy="0 0 0"/>
+    </joint>
+  </xacro:if>
+  <xacro:if value="${variant == '3m'}">
+    <!-- 손끝 장치가 없으므로 link6 장착면을 기준점으로 -->
+    <joint name="end_effector_joint" type="fixed">
+      <parent link="link6"/>
+      <child link="end_effector_link"/>
+      <origin xyz="0 -0.103 0" rpy="0 0 0"/>
+    </joint>
+  </xacro:if>
+  <link name="end_effector_link"/>
+
+  <xacro:omy_ros2_control use_sim="$(arg use_sim)" variant="${variant}"/>
+  <xacro:omy_gazebo variant="${variant}" controllers_file="$(arg controllers_file)"/>
+</robot>

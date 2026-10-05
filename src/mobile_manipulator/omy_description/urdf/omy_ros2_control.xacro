@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!--
+  OMY ros2_control 정의
+    use_sim=true  - Gazebo (gazebo_ros2_control/GazeboSystem)
+    use_sim=false - mock_components/GenericSystem (RViz 단독 테스트)
+  실제 OMY 는 Ethernet 으로 연결되는 별도 컨트롤러를 쓰므로 여기서는 다루지 않음
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    그리퍼 명령 방식
+      Gazebo - effort (힘). position 으로 하면 손가락 각도를 바로 덮어써서 물체를 뚫고 들어가고
+               쥐는 힘이 생기지 않음. effort 면 물체에 닿은 뒤 그 자리에서 멈추고 힘으로 누름.
+               위치 → 힘 변환(PID)은 effort_controllers/GripperActionController 가 담당.
+      mock   - position (힘을 계산할 물리가 없으므로)
+  -->
+  <xacro:macro name="gripper_joint" params="name interface">
+    <joint name="${name}">
+      <command_interface name="${interface}"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="arm_joint" params="name interface">
+    <joint name="${name}">
+      <command_interface name="${interface}"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="omy_ros2_control" params="use_sim variant">
+    <ros2_control name="OMYSystem" type="system">
+      <hardware>
+        <xacro:if value="${use_sim}">
+          <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </xacro:if>
+        <xacro:unless value="${use_sim}">
+          <plugin>mock_components/GenericSystem</plugin>
+        </xacro:unless>
+      </hardware>
+
+      <!--
+        6축 팔 (joint_trajectory_controller)
+          Gazebo - velocity 명령. position 이면 매 스텝 관절 각도를 덮어써서(순간이동) 링크 속도가 0 이 되고,
+                   손가락이 물체를 쥐고 올라가도 마찰이 물체를 끌어올리지 못함.
+                   velocity 면 링크가 실제 속도로 움직이고, 위치 오차는 JTC 의 PID(gains)가 보정.
+          mock   - position
+      -->
+      <xacro:property name="arm_interface" value="${'velocity' if use_sim else 'position'}"/>
+      <xacro:arm_joint name="joint1" interface="${arm_interface}"/>
+      <xacro:arm_joint name="joint2" interface="${arm_interface}"/>
+      <xacro:arm_joint name="joint3" interface="${arm_interface}"/>
+      <xacro:arm_joint name="joint4" interface="${arm_interface}"/>
+      <xacro:arm_joint name="joint5" interface="${arm_interface}"/>
+      <xacro:arm_joint name="joint6" interface="${arm_interface}"/>
+
+      <!-- 그리퍼 (F3M 만) - 구동 관절 rh_r1_joint 하나 -->
+      <xacro:if value="${variant == 'f3m'}">
+        <xacro:property name="gripper_interface" value="${'effort' if use_sim else 'position'}"/>
+        <xacro:gripper_joint name="rh_r1_joint" interface="${gripper_interface}"/>
+        <!--
+          나머지 손가락 관절 rh_l1, rh_r2, rh_l2 는 ros2_control 에 넣지 않음.
+          실제 그리퍼는 모터 하나가 링크 기구로 양쪽 손가락을 대칭으로 움직이므로 각도가 항상 같음.
+          Gazebo 에서는 parallel_finger 플러그인(omy_gazebo_plugins)이 rh_r1_joint 의 실제 각도에 맞추고,
+          RViz 에서는 robot_state_publisher 가 URDF 의 mimic 으로 계산함.
+          (ros2_control mimic 을 effort 로 쓰면 각 손가락에 같은 토크만 들어가서 각도가 서로 어긋나고
+           물체를 한쪽으로 밀어 버림)
+        -->
+      </xacro:if>
+    </ros2_control>
+  </xacro:macro>
+
+</robot>
