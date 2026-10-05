@@ -1,0 +1,49 @@
+# OMY 컨트롤러 설정 - RViz 전용 mock 모드 (rviz_mock.launch.py)
+# 물리 없이 mock_components/GenericSystem 이 명령을 그대로 상태로 돌려줌 → 팔, 그리퍼 모두 position
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    gripper_controller:
+      type: position_controllers/GripperActionController
+
+arm_controller:
+  ros__parameters:
+    joints:
+      - joint1
+      - joint2
+      - joint3
+      - joint4
+      - joint5
+      - joint6
+
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+      - velocity
+
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+
+    allow_partial_joints_goal: false
+    open_loop_control: true
+    allow_integration_in_goal_trajectories: true
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+
+# 0 = 열림, 1.135 rad = 닫힘 (mock 이라 물체가 없으므로 항상 목표 각도까지 감)
+gripper_controller:
+  ros__parameters:
+    joint: rh_r1_joint
+    action_monitor_rate: 20.0
+    goal_tolerance: 0.02
+    allow_stalling: true

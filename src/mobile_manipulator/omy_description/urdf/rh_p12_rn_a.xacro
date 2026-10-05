@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!--
+  RH-P12-RN-A 그리퍼 (OMY-F3M 기본 그리퍼)
+  손가락 하나 = 링크 2개 (평행 링크 기구)
+    r1 / l1 - 베이스에 붙은 첫 번째 마디, 바깥쪽으로 벌어짐
+    r2 / l2 - 손끝 마디, 첫 마디와 같은 각도로 반대 방향 회전 → 손끝이 항상 평행 유지
+  구동 관절은 rh_r1_joint 하나 (0 = 열림, 1.135 rad = 닫힘), 나머지 3개는 mimic
+  질량과 COG 는 ROBOTIS 값, 관성은 바운딩 박스 기준 균일 밀도 공식으로 계산
+  그리퍼 베이스의 +z = 손가락이 뻗는 방향
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:property name="rh_finger_y"    value="0.008"/>      <!-- 베이스 중심 ~ 첫 마디 축 (옆) -->
+  <xacro:property name="rh_finger_z"    value="0.048"/>      <!-- 베이스 바닥 ~ 첫 마디 축 -->
+  <xacro:property name="rh_tip_y"       value="0.0493634"/>  <!-- 첫 마디 축 ~ 손끝 마디 축 -->
+  <xacro:property name="rh_tip_z"       value="0.0285"/>
+  <xacro:property name="rh_close_angle" value="1.13514578304"/>
+  <!-- 속도는 ROBOTIS 설정값, 토크는 임의 값 (position 제어라 시뮬레이션 동작에는 영향 없음) -->
+  <xacro:property name="rh_velocity"    value="6.5"/>
+  <xacro:property name="rh_effort"      value="10.0"/>
+
+  <!-- 메시 + 바운딩 박스 충돌 + 박스 관성 -->
+  <xacro:macro name="rh_link" params="name mesh mass com box_xyz sx sy sz">
+    <link name="${name}">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://omy_description/meshes/rh_p12_rn_a/${mesh}.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="omy_grey"/>
+      </visual>
+      <collision>
+        <origin xyz="${box_xyz}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${sx} ${sy} ${sz}"/>
+        </geometry>
+      </collision>
+      <xacro:box_inertia m="${mass}" x="${sx}" y="${sy}" z="${sz}">
+        <origin xyz="${com}" rpy="0 0 0"/>
+      </xacro:box_inertia>
+    </link>
+  </xacro:macro>
+
+  <xacro:macro name="rh_joint" params="name parent child xyz axis mimic:=''">
+    <joint name="${name}" type="revolute">
+      <parent link="${parent}"/>
+      <child link="${child}"/>
+      <origin xyz="${xyz}" rpy="0 0 0"/>
+      <axis xyz="${axis}"/>
+      <limit lower="0.0" upper="${rh_close_angle}" effort="${rh_effort}" velocity="${rh_velocity}"/>
+      <dynamics damping="0.7"/>
+      <xacro:if value="${mimic != ''}">
+        <mimic joint="${mimic}" multiplier="1" offset="0"/>
+      </xacro:if>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="rh_p12_rn_a" params="parent *origin">
+    <joint name="gripper_fixed" type="fixed">
+      <parent link="${parent}"/>
+      <child link="rh_p12_rn_base"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <xacro:rh_link name="rh_p12_rn_base" mesh="base" mass="0.236" com="0 0 0.032"
+                   box_xyz="0 0 0.0295" sx="0.054" sy="0.08" sz="0.059"/>
+
+    <!-- 오른쪽 손가락 (+y) -->
+    <xacro:rh_joint name="rh_r1_joint" parent="rh_p12_rn_base" child="rh_p12_rn_r1"
+                    xyz="0 ${rh_finger_y} ${rh_finger_z}" axis="1 0 0"/>
+    <xacro:rh_link name="rh_p12_rn_r1" mesh="r1" mass="0.068" com="0 0.034 0.004"
+                   box_xyz="0 0.03005 0.00175" sx="0.026" sy="0.0681" sz="0.0615"/>
+    <xacro:rh_joint name="rh_r2" parent="rh_p12_rn_r1" child="rh_p12_rn_r2"
+                    xyz="0 ${rh_tip_y} ${rh_tip_z}" axis="-1 0 0" mimic="rh_r1_joint"/>
+    <xacro:rh_link name="rh_p12_rn_r2" mesh="r2" mass="0.022" com="0 0.006 0.011"
+                   box_xyz="0 0.00705 0.0126" sx="0.026" sy="0.0219" sz="0.0548"/>
+
+    <!-- 왼쪽 손가락 (-y), 오른쪽과 거울 대칭 -->
+    <xacro:rh_joint name="rh_l1" parent="rh_p12_rn_base" child="rh_p12_rn_l1"
+                    xyz="0 ${-rh_finger_y} ${rh_finger_z}" axis="-1 0 0" mimic="rh_r1_joint"/>
+    <xacro:rh_link name="rh_p12_rn_l1" mesh="l1" mass="0.068" com="0 -0.034 0.004"
+                   box_xyz="0 -0.03005 0.00175" sx="0.026" sy="0.0681" sz="0.0615"/>
+    <xacro:rh_joint name="rh_l2" parent="rh_p12_rn_l1" child="rh_p12_rn_l2"
+                    xyz="0 ${-rh_tip_y} ${rh_tip_z}" axis="1 0 0" mimic="rh_r1_joint"/>
+    <xacro:rh_link name="rh_p12_rn_l2" mesh="l2" mass="0.022" com="0 -0.006 0.011"
+                   box_xyz="0 -0.00705 0.0126" sx="0.026" sy="0.0219" sz="0.0548"/>
+  </xacro:macro>
+
+</robot>

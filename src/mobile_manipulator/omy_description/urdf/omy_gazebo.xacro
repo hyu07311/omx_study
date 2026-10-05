@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!-- OMY Gazebo 설정 (gazebo_link 매크로는 mobile_manipulator_description/gazebo.xacro 의 정의를 사용) -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="implicit_joint" params="reference">
+    <gazebo reference="${reference}">
+      <implicitSpringDamper>true</implicitSpringDamper>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:macro name="omy_gazebo" params="variant controllers_file">
+    <xacro:gazebo_link reference="link0" material="Gazebo/DarkGrey"/>
+    <xacro:gazebo_link reference="link1" material="Gazebo/DarkGrey"/>
+    <xacro:gazebo_link reference="link2" material="Gazebo/Grey"/>
+    <xacro:gazebo_link reference="link3" material="Gazebo/Grey"/>
+    <xacro:gazebo_link reference="link4" material="Gazebo/DarkGrey"/>
+    <xacro:gazebo_link reference="link5" material="Gazebo/DarkGrey"/>
+    <xacro:gazebo_link reference="link6" material="Gazebo/DarkGrey"/>
+
+    <xacro:if value="${variant == 'f3m'}">
+      <xacro:gazebo_link reference="rh_p12_rn_base" material="Gazebo/DarkGrey"/>
+      <!-- 손끝은 물체를 놓치지 않게 마찰 크게 -->
+      <xacro:gazebo_link reference="rh_p12_rn_r1" material="Gazebo/DarkGrey" mu="30.0"/>
+      <xacro:gazebo_link reference="rh_p12_rn_r2" material="Gazebo/DarkGrey" mu="30.0"/>
+      <xacro:gazebo_link reference="rh_p12_rn_l1" material="Gazebo/DarkGrey" mu="30.0"/>
+      <xacro:gazebo_link reference="rh_p12_rn_l2" material="Gazebo/DarkGrey" mu="30.0"/>
+      <!--
+        손가락 링크는 매우 가벼워서(관성 1e-5 kg m2 수준) 관절 감쇠 0.7 을 그대로 적용하면
+        1 ms 스텝에서 발산함 (속도가 NaN). 감쇠를 implicit 으로 계산하게 해서 안정화.
+      -->
+      <xacro:implicit_joint reference="rh_r1_joint"/>
+      <xacro:implicit_joint reference="rh_r2"/>
+      <xacro:implicit_joint reference="rh_l1"/>
+      <xacro:implicit_joint reference="rh_l2"/>
+      <xacro:d405_gazebo name="camera"/>
+
+      <!--
+        그리퍼 링크 기구 재현 - 구동 관절 rh_r1_joint 의 실제 각도에 나머지 3개를 맞춤
+          rh_l1        - 왼쪽 손가락이 오른쪽과 대칭으로 움직임
+          rh_r2, rh_l2 - 손끝 마디가 항상 평행
+      -->
+      <gazebo>
+        <plugin name="parallel_finger" filename="libparallel_finger_plugin.so">
+          <pair><joint>rh_l1</joint><follow>rh_r1_joint</follow><multiplier>1</multiplier></pair>
+          <pair><joint>rh_r2</joint><follow>rh_r1_joint</follow><multiplier>1</multiplier></pair>
+          <pair><joint>rh_l2</joint><follow>rh_r1_joint</follow><multiplier>1</multiplier></pair>
+        </plugin>
+      </gazebo>
+    </xacro:if>
+
+    <gazebo>
+      <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+        <parameters>${controllers_file}</parameters>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+</robot>
