@@ -10,6 +10,7 @@ Gazebo 없이 RViz(mock) 모드에서 쓰는 가짜 D405 + 간단한 장면
   집기    그리퍼(rh_r1_joint)가 닫혔을 때 손끝(end_effector_link) 근처에 큐브가 있으면 손에 붙이고,
           그리퍼가 열리면 그 자리 아래(테이블 또는 바닥) 위에 내려놓음 (물리 없음, 판정만)
   초기화  ros2 service call /reset_scene std_srvs/srv/Trigger
+  -p camera:=false 이면 카메라 렌더링(CPU 를 가장 많이 씀)만 끄고 장면 마커와 집기 판정은 그대로
 
 한계
   - 로봇 자신(손가락 등)은 카메라에 찍히지 않음
@@ -114,6 +115,7 @@ class FakeD405Scene(Node):
         self.declare_parameter('width', 848)
         self.declare_parameter('height', 480)
         self.declare_parameter('rate', 5.0)
+        self.declare_parameter('camera', True)
         self.width = self.get_parameter('width').value
         self.height = self.get_parameter('height').value
 
@@ -155,10 +157,13 @@ class FakeD405Scene(Node):
 
         self.create_timer(0.05, self._update_grasp)
         self.create_timer(0.2, self._publish_markers)
-        self.create_timer(1.0 / self.get_parameter('rate').value, self._publish_camera,
-                          callback_group=camera_group)
-        self.get_logger().info(
-            f'fake D405 {self.width}x{self.height}, fx {self.fx:.1f}, depth {MIN_DEPTH}~{MAX_DEPTH} m')
+        if self.get_parameter('camera').value:
+            self.create_timer(1.0 / self.get_parameter('rate').value, self._publish_camera,
+                              callback_group=camera_group)
+            self.get_logger().info(
+                f'fake D405 {self.width}x{self.height}, fx {self.fx:.1f}, depth {MIN_DEPTH}~{MAX_DEPTH} m')
+        else:
+            self.get_logger().info('fake D405 camera off (scene markers and grasp only)')
 
     # ---------------- TF ----------------
     def _lookup(self, frame):

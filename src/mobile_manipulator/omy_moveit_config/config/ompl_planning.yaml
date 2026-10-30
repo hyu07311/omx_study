@@ -1,0 +1,25 @@
+# moveit_configs_utils 기본 ompl_planning.yaml + arm 그룹 설정 (planner_configs 는 ompl_defaults.yaml 에서 자동 추가)
+planning_plugin: ompl_interface/OMPLPlanner
+start_state_max_bounds_error: 0.1
+jiggle_fraction: 0.05
+request_adapters: >-
+    default_planner_request_adapters/AddTimeOptimalParameterization
+    default_planner_request_adapters/ResolveConstraintFrames
+    default_planner_request_adapters/FixWorkspaceBounds
+    default_planner_request_adapters/FixStartStateBounds
+    default_planner_request_adapters/FixStartStateCollision
+    default_planner_request_adapters/FixStartStatePathConstraints
+
+# 7주차 비교 (방식 B) - 기본 플래너 RRTConnect
+arm:
+  default_planner_config: RRTConnect
+  planner_configs:
+    - RRTConnect
+    - RRT
+    - RRTstar
+    - PRM
+  longest_valid_segment_fraction: 0.005
+gripper:
+  default_planner_config: RRTConnect
+  planner_configs:
+    - RRTConnect

@@ -33,7 +33,7 @@ omy_description/urdf/
 | 관절 위치, 관절 범위 | OMY-F3M 사양서 / 도면 (joint3 ±150°, 나머지 ±360°) |
 | 형상 (STL) | ROBOTIS 제공 CAD 메시 (`meshes/`, Apache 2.0) |
 | 질량, COG, 관성 | ROBOTIS CAD 값 (팔), 그리퍼와 카메라는 바운딩 박스 기준 균일 밀도 공식 |
-| 충돌 형상 | 각 STL의 바운딩 박스 (직접 계산) |
+| 충돌 형상 | 각 STL의 바운딩 박스 (직접 계산). link2 만 STL 모양대로 원기둥 2 + 박스 1 (바운딩 박스는 joint2 를 기울이면 link0 과 겹쳐 MoveIt 이 충돌로 판정) |
 | 토크, 속도 한계 | DYNAMIXEL-Y 데이터시트. joint1·2는 YM080-230-A099-RH (61.4 Nm, 32.2 rpm), joint3~6은 YM070-210-A099-RH (31.7 Nm, 57.3 rpm) |
 | D405 | 본체 42×42×23 mm, 시야각 87°, 측정 거리 0.07~0.5 m. 장착 위치는 ROBOTIS 모델 기준 link6 브래킷 |
 

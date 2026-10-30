@@ -1,0 +1,16 @@
+# 속도 한계는 URDF (DYNAMIXEL-Y 데이터시트), 가속도 한계는 TOTG 시간 계획용으로 지정
+# RViz / MoveGroup 기본 배율 0.1 (실기 안전 규칙: 0.1~0.2)
+default_velocity_scaling_factor: 0.1
+default_acceleration_scaling_factor: 0.1
+
+joint_limits:
+  joint1: {has_velocity_limits: true, max_velocity: 3.372, has_acceleration_limits: true, max_acceleration: 5.0}
+  joint2: {has_velocity_limits: true, max_velocity: 3.372, has_acceleration_limits: true, max_acceleration: 5.0}
+  joint3: {has_velocity_limits: true, max_velocity: 6.000, has_acceleration_limits: true, max_acceleration: 10.0}
+  joint4: {has_velocity_limits: true, max_velocity: 6.000, has_acceleration_limits: true, max_acceleration: 10.0}
+  joint5: {has_velocity_limits: true, max_velocity: 6.000, has_acceleration_limits: true, max_acceleration: 10.0}
+  joint6: {has_velocity_limits: true, max_velocity: 6.000, has_acceleration_limits: true, max_acceleration: 10.0}
+  rh_r1_joint: {has_velocity_limits: true, max_velocity: 6.5, has_acceleration_limits: true, max_acceleration: 10.0}
+  rh_r2: {has_velocity_limits: true, max_velocity: 6.5, has_acceleration_limits: true, max_acceleration: 10.0}
+  rh_l1: {has_velocity_limits: true, max_velocity: 6.5, has_acceleration_limits: true, max_acceleration: 10.0}
+  rh_l2: {has_velocity_limits: true, max_velocity: 6.5, has_acceleration_limits: true, max_acceleration: 10.0}

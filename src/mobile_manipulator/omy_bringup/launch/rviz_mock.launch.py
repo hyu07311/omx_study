@@ -46,7 +46,9 @@ def generate_launch_description():
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        parameters=[{'robot_description': robot_description}],
+        # 기본 20 Hz 면 RViz 로봇이 끊겨 보임 → joint_states 와 같은 100 Hz
+        parameters=[{'robot_description': robot_description,
+                     'publish_frequency': ParameterValue(LaunchConfiguration('tf_rate'), value_type=float)}],
         output='screen')
 
     control_node = Node(
@@ -63,10 +65,11 @@ def generate_launch_description():
                 condition=IfCondition(PythonExpression(["'", variant, "' == 'f3m'"]))),
     ]
 
-    # 카메라가 달린 f3m 에서만
+    # 카메라가 달린 f3m 에서만. camera:=false 면 렌더링만 끄고 장면 마커·집기 판정은 유지
     fake_camera = Node(
         package='omy_bringup',
         executable='fake_d405_scene.py',
+        parameters=[{'camera': ParameterValue(LaunchConfiguration('camera'), value_type=bool)}],
         condition=IfCondition(PythonExpression(["'", variant, "' == 'f3m'"])),
         output='screen')
 
@@ -83,6 +86,10 @@ def generate_launch_description():
             'variant', default_value='f3m',
             description='f3m (gripper + D405) or 3m (arm only)'),
         DeclareLaunchArgument('start_rviz', default_value='true', description='Run rviz2'),
+        DeclareLaunchArgument('camera', default_value='true',
+                              description='Render fake D405 images (false = less CPU)'),
+        DeclareLaunchArgument('tf_rate', default_value='100.0',
+                              description='robot_state_publisher publish_frequency (Hz)'),
 
         robot_state_publisher,
         control_node,

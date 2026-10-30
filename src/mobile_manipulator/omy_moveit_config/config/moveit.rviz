@@ -1,0 +1,112 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 0.1
+      Plane Cell Count: 20
+      Reference Frame: <Fixed Frame>
+      Value: true
+    # 로봇은 TF(100 Hz)로 그림. MotionPlanning 의 Scene Robot 은 move_group 이 보내는
+    # planning scene 으로 그려서 초당 몇 번만 갱신됨 → 실행 중 로봇이 끊겨 보임
+    - Class: rviz_default_plugins/RobotModel
+      Name: RobotModel (TF 100 Hz)
+      Enabled: true
+      Alpha: 1
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot_description
+      Visual Enabled: true
+      Collision Enabled: false
+      Value: true
+    - Class: moveit_rviz_plugin/MotionPlanning
+      Name: MotionPlanning
+      Enabled: true
+      Move Group Namespace: ""
+      Robot Description: robot_description
+      Planning Scene Topic: /monitored_planning_scene
+      Planning Request:
+        Planning Group: arm
+        Interactive Marker Size: 0.15
+        Query Start State: false
+        # 손끝 마커를 끌어 Plan 하려면 true 로 (주황 목표 로봇이 보임)
+        Query Goal State: false
+      Planned Path:
+        Loop Animation: false
+        Show Robot Visual: true
+        Show Trail: false
+        State Display Time: 0.05 s
+        Trajectory Topic: /display_planned_path
+      Scene Geometry:
+        Scene Alpha: 0.6
+        Scene Color: 230; 180; 50
+        Show Scene Geometry: true
+      Scene Robot:
+        Robot Alpha: 1
+        # 위의 RobotModel 이 대신 그림
+        Show Robot Visual: false
+        Show Robot Collision: false
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Scene (table, cubes)
+      Enabled: true
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /scene_markers
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Compare paths (A red / B green / C blue)
+      Enabled: true
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /compare_paths
+      Value: true
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: world
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/Interact
+      Hide Inactive Objects: true
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/Measure
+      Line color: 128; 128; 0
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 1.8
+      Focal Point:
+        X: 0.3
+        Y: 0.0
+        Z: 0.3
+      Pitch: 0.45
+      Yaw: 5.5
+      Target Frame: <Fixed Frame>
+      Name: Current View
+      Value: Orbit (rviz)
+    Saved: ~
+Window Geometry:
+  Height: 1000
+  Width: 1600
+  Hide Left Dock: false
+  Hide Right Dock: true

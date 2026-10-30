@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: omy_description
+    relative_path: urdf/omy.urdf.xacro
+    xacro_args: use_sim:=false variant:=f3m
+  srdf:
+    relative_path: config/omy.srdf
+  package_settings:
+    author_name: yu
+    author_email: hyu07311@gmail.com

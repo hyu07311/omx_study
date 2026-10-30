@@ -8,6 +8,7 @@ install(DIRECTORY config launch worlds
 )
 
 install(PROGRAMS scripts/omy_ik_demo.py scripts/omy_pick_demo.py scripts/fake_d405_scene.py scripts/save_d405.py
+  scripts/omy_moveit_compare.py scripts/omy_ik_benchmark.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
