@@ -1,0 +1,33 @@
+[INFO] [launch]: All log files can be found below /home/yu/.ros/log/2026-10-30-17-41-25-396602-yu-10023
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [ik_benchmark-1]: process started with pid [10024]
+[ik_benchmark-1] [0m[INFO] [1793349685.601405718] [omy_ik_benchmark_cpp]: 300 targets, 30 restart seeds, max |FK_cpp - FK_python| = 4.44e-16[0m
+[ik_benchmark-1] [0m[INFO] [1793349685.630429494] [omy_ik_benchmark_cpp]: C++ ik (single)    무작위 시작:  72.3 %, median 0.0270 ms[0m
+[ik_benchmark-1] [0m[INFO] [1793349685.637773323] [omy_ik_benchmark_cpp]: C++ ik (single)    가까운 시작:  97.3 %, median 0.0061 ms[0m
+[ik_benchmark-1] [0m[INFO] [1793349685.873695298] [omy_ik_benchmark_cpp]: C++ ikWithRestarts 무작위 시작: 100.0 %, median 0.3475 ms[0m
+[ik_benchmark-1] [0m[INFO] [1793349685.966068900] [omy_ik_benchmark_cpp]: C++ ikWithRestarts 가까운 시작: 100.0 %, median 0.2793 ms[0m
+[ik_benchmark-1] [0m[INFO] [1793349685.968492875] [moveit_rdf_loader.rdf_loader]: Loaded robot model in 0.00227906 seconds[0m
+[ik_benchmark-1] [0m[INFO] [1793349685.968516940] [moveit_robot_model.robot_model]: Loading robot model 'omy'...[0m
+[ik_benchmark-1] [0m[INFO] [1793349685.968527390] [moveit_robot_model.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint[0m
+[ik_benchmark-1] [0m[INFO] [1793349686.863143415] [omy_ik_benchmark_cpp]: MoveIt KDL         무작위 시작:  99.0 %, median 0.6198 ms[0m
+[ik_benchmark-1] [0m[INFO] [1793349687.124180173] [omy_ik_benchmark_cpp]: MoveIt KDL         가까운 시작:  99.3 %, median 0.0621 ms[0m
+[ik_benchmark-1] [0m[INFO] [1793349687.236419325] [omy_ik_benchmark_cpp]: MoveIt LMA         무작위 시작: 100.0 %, median 0.1814 ms[0m
+[ik_benchmark-1] [0m[INFO] [1793349687.269519451] [omy_ik_benchmark_cpp]: MoveIt LMA         가까운 시작: 100.0 %, median 0.0936 ms[0m
+[ik_benchmark-1] [0m[INFO] [1793349687.272336815] [omy_ik_benchmark_cpp]: C++ ik (single) vs Python single: per-target success agreement 600 / 600[0m
+[ik_benchmark-1] [0m[INFO] [1793349687.272871660] [omy_ik_benchmark_cpp]: C++ ikWithRestarts vs Python restarts: per-target success agreement 600 / 600[0m
+[ik_benchmark-1] 
+[ik_benchmark-1] 방식                     시작      timeout 성공%   중앙ms      90%ms   최대ms   위치mm  자세° 틀린해
+[ik_benchmark-1] C++ ik (single)            무작위 시작        -    72.3     0.0270     0.2556      0.286     0.0999    0.0034      0
+[ik_benchmark-1] C++ ik (single)            가까운 시작        -    97.3     0.0061     0.0422      0.261     0.1000    0.0153      0
+[ik_benchmark-1] C++ ikWithRestarts         무작위 시작        -   100.0     0.3475     2.0714      8.695     0.1000    0.0065      0
+[ik_benchmark-1] C++ ikWithRestarts         가까운 시작        -   100.0     0.2793     0.5281      8.729     0.1000    0.0317      0
+[ik_benchmark-1] MoveIt KDL                 무작위 시작     0.05    99.0     0.6198     7.1072     54.109     0.0096    0.0005      0
+[ik_benchmark-1] MoveIt KDL                 가까운 시작     0.05    99.3     0.0621     0.3976     54.075     0.0098    0.0005      0
+[ik_benchmark-1] MoveIt LMA                 무작위 시작     0.05   100.0     0.1814     0.7103      4.393     0.0082    0.0531      0
+[ik_benchmark-1] MoveIt LMA                 가까운 시작     0.05   100.0     0.0936     0.1206      1.103     0.0074    0.0540      0
+[ik_benchmark-1] Python ik_with_restarts    무작위 시작        -   100.0   254.8732  1552.0219   6406.729     0.1000    0.0065      0
+[ik_benchmark-1] Python ik_with_restarts    가까운 시작        -   100.0   207.1670   405.4347   6451.307     0.1000    0.0317      0
+[ik_benchmark-1] Python ik (single)         무작위 시작        -    72.3    18.4292   189.6565    197.695     0.0999    0.0034      0
+[ik_benchmark-1] Python ik (single)         가까운 시작        -    97.3     3.9474    31.8059    189.254     0.1000    0.0153      0
+[ik_benchmark-1] [0m[INFO] [1793349687.278511317] [omy_ik_benchmark_cpp]: saved to /home/yu/robot_ws/motion_cpp_results/ik[0m
+[INFO] [ik_benchmark-1]: process has finished cleanly [pid 10024]

@@ -1,0 +1,2 @@
+runs,success_pct,collision_free_pct,median_plan_ms,p90_plan_ms,max_plan_ms
+20,100,100,65.1483,94.2615,112.752

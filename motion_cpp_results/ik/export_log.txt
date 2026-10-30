@@ -1,0 +1,6 @@
+300 targets -> /home/yu/robot_ws/motion_cpp_results/ik/targets.csv
+python single   far :  72.3 %, median   18.429 ms (20 s)
+python restarts far : 100.0 %, median  254.873 ms (168 s)
+python single   near:  97.3 %, median    3.947 ms (5 s)
+python restarts near: 100.0 %, median  207.167 ms (67 s)
+saved /home/yu/robot_ws/motion_cpp_results/ik/python_results.csv
